@@ -6,7 +6,6 @@ end
 
 local MODNAME = minetest.get_current_modname()
 local MODPATH = minetest.get_modpath(MODNAME)
-local SQL_FILENAME = "holograms.sqlite3"
 
 local function deepcopy(value)
     if type(value) ~= "table" then
@@ -94,48 +93,6 @@ local function load_config()
     return cfg
 end
 
-local function open_sql_backend()
-    local modlib = rawget(_G, "modlib")
-    local persistence = type(modlib) == "table" and modlib.persistence or nil
-    local sqlite_factory = type(persistence) == "table" and persistence.sqlite3 or nil
-    if type(sqlite_factory) ~= "function" then
-        return nil
-    end
-
-    local ok_mod, sqlite_mod = pcall(sqlite_factory)
-    if not ok_mod or type(sqlite_mod) ~= "table" or type(sqlite_mod.new) ~= "function" then
-        minetest.log("warning", "[holograms] sqlite backend unavailable: " .. tostring(sqlite_mod))
-        return nil
-    end
-
-    local db_path = minetest.get_worldpath() .. "/" .. SQL_FILENAME
-    local ok_db, db = pcall(sqlite_mod.new, db_path, {holograms = {}})
-    if not ok_db or type(db) ~= "table" then
-        minetest.log("warning", "[holograms] sqlite open failed: " .. tostring(db))
-        return nil
-    end
-
-    local ok_init, init_err = pcall(function()
-        db:init()
-        if type(db.root) ~= "table" then
-            db.root = {}
-        end
-        if type(db.root.holograms) ~= "table" then
-            db:set_root("holograms", {})
-        end
-    end)
-    if not ok_init then
-        pcall(function()
-            db:close()
-        end)
-        minetest.log("warning", "[holograms] sqlite init failed: " .. tostring(init_err))
-        return nil
-    end
-
-    minetest.log("action", "[holograms] using sqlite storage: " .. db_path)
-    return {db = db, path = db_path}
-end
-
 local function normalize_name(raw)
     local name = trim(raw)
     if name == "" then
@@ -166,7 +123,6 @@ end
 local HM = {
     modpath = MODPATH,
     storage = minetest.get_mod_storage(),
-    sql_backend = open_sql_backend(),
     cfg = load_config(),
     storage_key = "holograms_v1",
     entity_name = MODNAME .. ":text",
@@ -207,14 +163,5 @@ minetest.log("action", "[holograms] signs_lib renderer active.")
 dofile(MODPATH .. "/lib/renderer.lua")(HM)
 dofile(MODPATH .. "/lib/core.lua")(HM, API)
 dofile(MODPATH .. "/lib/commands.lua")(HM)
-
-if HM.sql_backend and HM.sql_backend.db and type(HM.sql_backend.db.close) == "function" then
-    local sql = HM.sql_backend
-    minetest.register_on_shutdown(function()
-        pcall(function()
-            sql.db:close()
-        end)
-    end)
-end
 
 _G.holograms = API

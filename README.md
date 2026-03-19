@@ -6,7 +6,7 @@ Text rendering uses `signs_lib` fonts and supports color tokens when `color_lib`
 
 ## Features
 
-- holograms saved in world sqlite: `<worldpath>/holograms.sqlite3`
+- holograms saved in mod storage
 - dynamic holograms via provider callbacks
 - alignment support: `left`, `center`, `right`
 

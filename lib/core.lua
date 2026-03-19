@@ -11,7 +11,6 @@ return function(HM, API)
     end
 
     local storage = HM.storage
-    local sql_backend = HM.sql_backend
     local cfg = HM.cfg
     local normalize_name = HM.normalize_name
     local key_for_name = HM.key_for_name
@@ -30,37 +29,17 @@ return function(HM, API)
                 }
             end
         end
-        if sql_backend and sql_backend.db and type(sql_backend.db.set_root) == "function" then
-            local ok, err = pcall(function()
-                sql_backend.db:set_root("holograms", persist_rows)
-            end)
-            if ok then
-                return
-            end
-            minetest.log("warning", "[holograms] sqlite save failed, using mod storage fallback: " .. tostring(err))
-        end
         storage:set_string(HM.storage_key, minetest.serialize(persist_rows))
     end
 
     local function load_holograms()
-        local decoded = nil
-        local migrated_from_storage = false
-
-        if sql_backend and sql_backend.db and type(sql_backend.db.root) == "table" and type(sql_backend.db.root.holograms) == "table" then
-            decoded = sql_backend.db.root.holograms
+        local raw = storage:get_string(HM.storage_key)
+        if raw == "" then
+            HM.holograms = {}
+            return
         end
 
-        if type(decoded) ~= "table" or next(decoded) == nil then
-            local raw = storage:get_string(HM.storage_key)
-            if raw ~= "" then
-                local old = minetest.deserialize(raw)
-                if type(old) == "table" then
-                    decoded = old
-                    migrated_from_storage = sql_backend ~= nil
-                end
-            end
-        end
-
+        local decoded = minetest.deserialize(raw)
         if type(decoded) ~= "table" then
             HM.holograms = {}
             return
@@ -95,10 +74,6 @@ return function(HM, API)
         end
 
         HM.holograms = out
-        if migrated_from_storage then
-            save_holograms()
-            storage:set_string(HM.storage_key, "")
-        end
     end
 
     local function object_is_valid(obj)

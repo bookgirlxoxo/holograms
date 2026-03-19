@@ -1,0 +1,11 @@
+{
+  "max_visible_chars": 160,
+  "list_limit": 200,
+  "default_color": "#ffffff",
+  "sprite_font_size": 24,
+  "text_force_unicode_font": false,
+  "text_char_spacing": 0,
+  "entity_visual_scale": 1.0,
+  "entity_glow": 0,
+  "allow_newlines": false
+}

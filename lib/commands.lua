@@ -97,13 +97,20 @@ return function(HM)
 
     local function parse_pos_token(raw, player)
         local spec = trim(raw):gsub("%s+", "")
+        if spec:lower() == "here" then
+            local base = get_facing_base_pos(player)
+            if not base then
+                return nil, "The 'here' position token requires an in-game player sender."
+            end
+            return base, nil
+        end
         if spec:sub(1, 1) == "(" and spec:sub(-1) == ")" then
             spec = spec:sub(2, -2)
         end
 
         local xraw, yraw, zraw = spec:match("^([^,]+),([^,]+),([^,]+)$")
         if not xraw or not yraw or not zraw then
-            return nil, "Invalid position format. Use x,y,z or ~,~,~."
+            return nil, "Invalid position format. Use here, x,y,z or ~,~,~."
         end
 
         local base = get_facing_base_pos(player)
@@ -127,7 +134,7 @@ return function(HM)
     local function cmd_add(caller_name, args)
         local holo_name, pos_token, text = tostring(args or ""):match("^%s*(%S+)%s+(%S+)%s+(.+)%s*$")
         if not holo_name then
-            return false, "Usage: /" .. COMMAND_NAME .. " add <name> <x,y,z|~,~,~|~,~2,~4> <text>"
+            return false, "Usage: /" .. COMMAND_NAME .. " add <name> <here|x,y,z|~,~,~|~,~2,~4> <text>"
         end
 
         holo_name = normalize_name(holo_name)
@@ -230,7 +237,7 @@ return function(HM)
     local function cmd_move(caller_name, args)
         local name_raw, pos_raw = tostring(args or ""):match("^%s*(%S+)%s*(.-)%s*$")
         if not name_raw or name_raw == "" then
-            return false, "Usage: /" .. COMMAND_NAME .. " move <name> [x,y,z|~,~,~|~,~2,~4]"
+            return false, "Usage: /" .. COMMAND_NAME .. " move <name> [here|x,y,z|~,~,~|~,~2,~4]"
         end
 
         local name = normalize_name(name_raw)
@@ -310,8 +317,8 @@ return function(HM)
     local function hologram_help()
         return table.concat({
             "Usage:",
-            "/" .. COMMAND_NAME .. " add <name> <x,y,z|~,~,~|~,~2,~4> <text>",
-            "/" .. COMMAND_NAME .. " move <name> [x,y,z|~,~,~|~,~2,~4]",
+            "/" .. COMMAND_NAME .. " add <name> <here|x,y,z|~,~,~|~,~2,~4> <text>",
+            "/" .. COMMAND_NAME .. " move <name> [here|x,y,z|~,~,~|~,~2,~4]",
             "/" .. COMMAND_NAME .. " edit <name> <text>",
             "/" .. COMMAND_NAME .. " list",
             "/" .. COMMAND_NAME .. " delete <name>",
@@ -348,7 +355,7 @@ return function(HM)
     end
 
     minetest.register_chatcommand(COMMAND_NAME, {
-        params = "add <name> <x,y,z|~,~,~|~,~2,~4> <text> | move <name> [x,y,z|~,~,~|~,~2,~4] | edit <name> <text> | list | delete <name> | size <name> <scale>",
+        params = "add <name> <here|x,y,z|~,~,~|~,~2,~4> <text> | move <name> [here|x,y,z|~,~,~|~,~2,~4] | edit <name> <text> | list | delete <name> | size <name> <scale>",
         description = "admin hologram management",
         func = hologram_command,
     })

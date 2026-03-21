@@ -12,8 +12,8 @@ Text rendering uses `signs_lib` fonts and supports color tokens when `color_lib`
 
 ## Admin-only Commands
 
-- `/hologram add <name> <x,y,z|~,~,~|~,~2,~4> <text>`
-- `/hologram move <name> [x,y,z|~,~,~|~,~2,~4]`
+- `/hologram add <name> <here|x,y,z|~,~,~|~,~2,~4> <text>`
+- `/hologram move <name> [here|x,y,z|~,~,~|~,~2,~4]`
 - `/hologram edit <name> <text>`
 - `/hologram list`
 - `/hologram delete <name>`

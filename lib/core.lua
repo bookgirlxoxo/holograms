@@ -107,10 +107,19 @@ return function(HM, API)
             scale_mul = 1.0
         end
         scale_mul = math.min(scale_mul, HM.MAX_HOLOGRAM_SCALE)
-        local scale_y = cfg.entity_visual_scale * scale_mul * HM.TEXT_VERT_SCALING
-        scale_y = math.max(0.05, math.min(HM.MAX_VISUAL_SIZE, scale_y))
-        local scale_x = (scale_y * (tex_w / math.max(1, tex_h))) * HM.TEXT_HORIZ_SCALING
-        scale_x = math.max(0.1, math.min(HM.MAX_VISUAL_SIZE, scale_x))
+        local base_y = cfg.entity_visual_scale * scale_mul * HM.TEXT_VERT_SCALING
+        local base_x = (base_y * (tex_w / math.max(1, tex_h))) * HM.TEXT_HORIZ_SCALING
+        local fit = 1.0
+        
+        if base_x > HM.MAX_VISUAL_SIZE then
+            fit = math.min(fit, HM.MAX_VISUAL_SIZE / base_x)
+        end
+        if base_y > HM.MAX_VISUAL_SIZE then
+            fit = math.min(fit, HM.MAX_VISUAL_SIZE / base_y)
+        end
+
+        local scale_x = math.max(0.1, base_x * fit)
+        local scale_y = math.max(0.05, base_y * fit)
 
         local pos = vector.new(entry.pos)
         pos.y = pos.y + HM.HOLOGRAM_OFFSET_Y
